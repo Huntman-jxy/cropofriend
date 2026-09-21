@@ -13,9 +13,6 @@ venv/
 # VS Code
 .vscode/
 
-# YOLO model files
-models/*.pt
-
 # Generated files
 outputs/
 
