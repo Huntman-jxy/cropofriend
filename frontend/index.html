@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CropOfriend</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="topbar">
+    <div class="brand">CropOfriend</div>
+</header>
+
+<main class="container">
+    <section class="intro">
+        <p class="eyebrow">EARLY DETECTION</p>
+        <h1>Check your crop</h1>
+        <p class="muted">Upload a crop image and we will analyze it using disease and pest detection models.</p>
+    </section>
+
+    <section class="card">
+        <form id="cropForm">
+            <label class="upload" for="image">
+                <input id="image" type="file" accept="image/*" required>
+                <span id="uploadText">Choose crop image</span>
+                <small>JPG, PNG or WEBP</small>
+            </label>
+
+            <div class="fields">
+                <div>
+                    <label>Location</label>
+                    <div id="locationStatus" class="location">Getting location permission...</div>
+                </div>
+            </div>
+
+            <button id="analyzeBtn" type="submit">Analyze crop</button>
+            <p id="status" class="status"></p>
+        </form>
+    </section>
+
+    <section id="results" class="results hidden">
+        <div class="result-head">
+            <div>
+                <p class="eyebrow">ANALYSIS</p>
+                <h2>Crop health report</h2>
+            </div>
+            <span id="demoBadge" class="badge hidden">Demo mode</span>
+        </div>
+
+        <div class="result-grid">
+            <div class="result-card">
+                <span>Disease</span>
+                <strong id="disease">—</strong>
+                <small id="diseaseConfidence">—</small>
+            </div>
+            <div class="result-image-card">
+                <h3>Disease Detection</h3>
+
+                <img
+                    id="diseaseImage"
+                    class="result-image hidden"
+                    alt="Disease detection result"
+                />
+            </div>
+            <div class="result-card">
+                <span>Pest</span>
+                <strong id="pest">—</strong>
+                <small id="pestConfidence">—</small>
+            </div>
+            <div class="result-image-card">
+                <h3>Pest Detection</h3>
+
+                <img
+                    id="pestImage"
+                    class="result-image hidden"
+                    alt="Pest detection result"
+                />
+            </div>
+            <div class="result-card">
+                <span>Severity</span>
+                <strong id="severity">—</strong>
+            </div>
+        </div>
+
+        <div class="risk-box">
+            <div>
+                <span class="label">Weighted risk score</span>
+                <strong id="risk">—</strong>
+            </div>
+            <div id="riskLevel" class="risk-level">—</div>
+        </div>
+
+        <div class="weather">
+            <h3>Current weather</h3>
+            <div class="weather-grid">
+                <div><span>Temperature</span><strong id="temperature">—</strong></div>
+                <div><span>Humidity</span><strong id="humidity">—</strong></div>
+                <div><span>Precipitation</span><strong id="precipitation">—</strong></div>
+            </div>
+        </div>
+
+        <div class="advice">
+            <h3>Management guidance</h3>
+            <ul>
+                <li>Inspect nearby plants for similar symptoms.</li>
+                <li>Remove heavily affected plant material where appropriate.</li>
+                <li>Consider current weather conditions when planning management.</li>
+                <li>Follow locally approved agricultural guidance before applying any pesticide.</li>
+            </ul>
+        </div>
+        <button
+        onclick="window.location.href='/static/gis.html'"
+        class="gis-button"
+        >
+        View GIS Hotspot Map
+        </button>
+
+        <p class="note">
+            The risk score is a prototype decision-support score and is not a scientifically validated probability of crop loss.
+        </p>
+    </section>
+</main>
+
+<footer>CropOfriend · SIH prototype</footer>
+<script src="/static/script.js"></script>
+</body>
+</html>

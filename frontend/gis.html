@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Crop Friend - GIS Hotspot Mapping</title>
+
+    <!-- Leaflet CSS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+    <style>
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f7f6;
+        }
+
+        /* Header */
+
+        .header {
+            background: #1f6f43;
+            color: white;
+            padding: 20px 30px;
+        }
+
+        .header h1 {
+            margin: 0;
+        }
+
+        .header p {
+            margin: 5px 0 0;
+        }
+
+        /* Demo warning */
+
+        .demo-banner {
+            background: #fff3cd;
+            color: #664d03;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* Filters */
+
+        .controls {
+            padding: 15px 25px;
+            background: white;
+
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        select {
+            padding: 8px 12px;
+
+            border-radius: 6px;
+
+            border: 1px solid #ccc;
+        }
+
+        /* Statistics */
+
+        .stats {
+            display: flex;
+
+            gap: 15px;
+
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+
+            padding: 15px 25px;
+
+            border-radius: 10px;
+
+            box-shadow:
+                0 2px 8px rgba(0,0,0,0.08);
+
+            min-width: 150px;
+        }
+
+        .card h3 {
+            margin: 0;
+
+            font-size: 14px;
+
+            color: #666;
+        }
+
+        .card p {
+            margin: 8px 0 0;
+
+            font-size: 25px;
+
+            font-weight: bold;
+        }
+
+        /* Map */
+
+        #map {
+            height: 600px;
+
+            width: 100%;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- Header -->
+
+    <div class="header">
+
+        <h1> Crop Friend</h1>
+
+        <p>
+            GIS-Based Crop Disease & Pest Hotspot Mapping
+        </p>
+
+    </div>
+
+
+    <!-- Demo warning -->
+
+    <div class="demo-banner">
+
+        ⚠ DEMONSTRATION MODE —
+        Hotspot data shown on this map is simulated.
+
+    </div>
+
+
+    <!-- Filters -->
+
+    <div class="controls">
+
+        <label>
+
+            Problem:
+
+            <select id="problemFilter">
+
+                <option value="All">
+                    All
+                </option>
+
+                <option value="Disease">
+                    Disease
+                </option>
+
+                <option value="Pest">
+                    Pest
+                </option>
+
+            </select>
+
+        </label>
+
+
+        <label>
+
+            Crop:
+
+            <select id="cropFilter">
+
+                <option value="All">
+                    All
+                </option>
+
+                <option value="Tomato">
+                    Tomato
+                </option>
+
+                <option value="Potato">
+                    Potato
+                </option>
+
+                <option value="Rice">
+                    Rice
+                </option>
+
+            </select>
+
+        </label>
+
+    </div>
+
+
+    <!-- Statistics -->
+
+    <div class="stats">
+
+
+        <div class="card">
+
+            <h3>
+                Total Reports
+            </h3>
+
+            <p id="totalReports">
+                0
+            </p>
+
+        </div>
+
+
+        <div class="card">
+
+            <h3>
+                Hotspots
+            </h3>
+
+            <p id="hotspotCount">
+                0
+            </p>
+
+        </div>
+
+
+        <div class="card">
+
+            <h3>
+                Highest Severity
+            </h3>
+
+            <p id="highestSeverity">
+                0%
+            </p>
+
+        </div>
+
+
+        <div class="card">
+
+            <h3>
+                Highest Risk
+            </h3>
+
+            <p id="highestRisk">
+                0
+            </p>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- Map -->
+
+    <div id="map"></div>
+
+
+    <!-- Leaflet JavaScript -->
+
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
+
+
+    <script>
+
+        /*
+        ==========================================
+        MAP INITIALIZATION
+        ==========================================
+        */
+
+        let map = L.map('map').setView(
+            [23.5204, 87.3119],
+            13
+        );
+
+
+        L.tileLayer(
+            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            {
+                attribution:
+                    '&copy; OpenStreetMap contributors'
+            }
+        ).addTo(map);
+
+
+        /*
+        ==========================================
+        STORE HOTSPOT DATA
+        ==========================================
+        */
+
+        let allHotspots = [];
+
+
+        /*
+        ==========================================
+        LOAD HOTSPOTS FROM FASTAPI
+        ==========================================
+        */
+
+        async function loadHotspots() {
+
+            try {
+
+                const response = await fetch(
+                    'http://127.0.0.1:8000/api/hotspots'
+                );
+
+
+                const data =
+                    await response.json();
+
+
+                allHotspots =
+                    data.hotspots;
+
+
+                displayHotspots();
+
+
+            }
+            catch (error) {
+
+                console.error(
+                    "Could not load hotspot data:",
+                    error
+                );
+
+                alert(
+                    "Could not connect to Crop Friend backend."
+                );
+
+            }
+
+        }
+
+
+        /*
+        ==========================================
+        DISPLAY HOTSPOTS
+        ==========================================
+        */
+
+        function displayHotspots() {
+
+
+            /*
+            Remove old markers
+            */
+
+            map.eachLayer(function(layer) {
+
+                if (
+                    layer instanceof L.CircleMarker
+                ) {
+
+                    map.removeLayer(layer);
+
+                }
+
+            });
+
+
+            /*
+            Get selected filters
+            */
+
+            const problem =
+                document.getElementById(
+                    "problemFilter"
+                ).value;
+
+
+            const crop =
+                document.getElementById(
+                    "cropFilter"
+                ).value;
+
+
+            /*
+            Filter data
+            */
+
+            let filtered =
+                allHotspots.filter(item => {
+
+                    const problemMatch =
+                        problem === "All" ||
+                        item.type === problem;
+
+
+                    const cropMatch =
+                        crop === "All" ||
+                        item.crop === crop;
+
+
+                    return (
+                        problemMatch &&
+                        cropMatch
+                    );
+
+                });
+
+
+            /*
+            Statistics
+            */
+
+            let totalReports = 0;
+
+            let highestSeverity = 0;
+
+            let highestRisk = 0;
+
+
+            /*
+            Create map markers
+            */
+
+            filtered.forEach(item => {
+
+
+                totalReports +=
+                    item.reports;
+
+
+                highestSeverity =
+                    Math.max(
+                        highestSeverity,
+                        item.severity
+                    );
+
+
+                highestRisk =
+                    Math.max(
+                        highestRisk,
+                        item.risk
+                    );
+
+
+                /*
+                Determine marker color
+                */
+
+                let markerColor;
+
+
+                if (item.risk >= 75) {
+
+                    markerColor = "red";
+
+                }
+
+                else if (item.risk >= 50) {
+
+                    markerColor = "orange";
+
+                }
+
+                else {
+
+                    markerColor = "green";
+
+                }
+
+
+                /*
+                Create marker
+                */
+
+                const marker =
+                    L.circleMarker(
+
+                        [
+                            item.lat,
+                            item.lon
+                        ],
+
+                        {
+                            radius: 15,
+
+                            color:
+                                markerColor,
+
+                            fillColor:
+                                markerColor,
+
+                            fillOpacity: 0.45,
+
+                            weight: 3
+                        }
+
+                    );
+
+
+                /*
+                Popup
+                */
+
+                marker.bindPopup(`
+
+                    <div
+                        style="min-width:220px"
+                    >
+
+                        <h3>
+                            ${item.problem}
+                        </h3>
+
+                        <b>Crop:</b>
+                        ${item.crop}
+
+                        <br><br>
+
+                        <b>Type:</b>
+                        ${item.type}
+
+                        <br><br>
+
+                        <b>Reports:</b>
+                        ${item.reports}
+
+                        <br><br>
+
+                        <b>Average Severity:</b>
+                        ${item.severity}%
+
+                        <br><br>
+
+                        <b>Risk Score:</b>
+                        ${item.risk}/100
+
+                    </div>
+
+                `);
+
+
+                marker.addTo(map);
+
+            });
+
+
+            /*
+            Update dashboard
+            */
+
+            document.getElementById(
+                "totalReports"
+            ).innerText =
+                totalReports;
+
+
+            document.getElementById(
+                "hotspotCount"
+            ).innerText =
+                filtered.length;
+
+
+            document.getElementById(
+                "highestSeverity"
+            ).innerText =
+                highestSeverity + "%";
+
+
+            document.getElementById(
+                "highestRisk"
+            ).innerText =
+                highestRisk + "/100";
+
+        }
+
+
+        /*
+        ==========================================
+        FILTER EVENTS
+        ==========================================
+        */
+
+        document
+            .getElementById("problemFilter")
+            .addEventListener(
+                "change",
+                displayHotspots
+            );
+
+
+        document
+            .getElementById("cropFilter")
+            .addEventListener(
+                "change",
+                displayHotspots
+            );
+
+
+        /*
+        ==========================================
+        START
+        ==========================================
+        */
+
+        loadHotspots();
+
+    </script>
+
+
+</body>
+
+</html>

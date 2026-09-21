@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual environments
+.venv/
+venv/
+
+# Environment/secrets
+.env
+.env.*
+
+# VS Code
+.vscode/
+
+# YOLO model files
+models/*.pt
+
+# Generated files
+outputs/
+
+# Database
+*.db
+
+# OS files
+.DS_Store
+Thumbs.db
