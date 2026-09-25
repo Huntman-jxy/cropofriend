@@ -36,19 +36,6 @@ uvicorn backend.main:app --reload
 
 Open http://127.0.0.1:8000
 
-## Models
-
-Put your trained files here:
-
-models/disease_model.pt
-models/pest_model.pt
-
-Then set:
-
-USE_MODELS=true
-
-The app can still run without model files using demo mode.
-
 ## Production deployment
 
 This repository includes:
